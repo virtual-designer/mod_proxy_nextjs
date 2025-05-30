@@ -1,0 +1,13 @@
+autom4te.cache
+*.o
+*.la
+*.lo
+*.slo
+*.so
+build-aux
+*.in
+aclocal.m4
+configure
+m4
+.deps
+.libs
