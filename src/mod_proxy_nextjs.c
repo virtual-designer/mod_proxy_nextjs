@@ -1,6 +1,5 @@
 #include <stdbool.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "httpd.h"
 #include "http_config.h"
@@ -46,8 +45,6 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
     {
         return ap_pass_brigade(filter->next, bb);
     }
-    
-    printf("Content-Type: %s\n", r->content_type);
 
     for (apr_bucket *b = APR_BRIGADE_FIRST(bb); b != APR_BRIGADE_SENTINEL(bb); b = APR_BUCKET_NEXT(b))
     {
