@@ -41,7 +41,7 @@ SetOutputFilter INFLATE;proxy-html;nextjs;DEFLATE
 SetOutputFilter INFLATE;proxy-html;nextjs;BROTLI_COMPRESS
 ```
 
-Then configure `mod_proxy`:
+Then configure `mod_proxy` (assuming you have it installed and enabled):
 
 ```conf
 ProxyRequests Off
