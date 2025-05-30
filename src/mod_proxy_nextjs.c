@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "httpd.h"
 #include "http_config.h"
@@ -12,7 +13,7 @@
 #include "apr_strings.h"
 
 #define MODULE_NAME     "mod_proxy_nextjs"
-#define OUT_FILTER_NAME "proxy_nextjs_out"
+#define OUT_FILTER_NAME "nextjs"
 
 typedef struct {
     apr_size_t bytes_read;
@@ -22,17 +23,32 @@ typedef struct {
 
 static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_brigade *bb)
 { 
-    request_rec *req = filter->r;
+    request_rec *r = filter->r;
     proxy_nextjs_ctx_t *ctx = filter->ctx;
 
     if (!ctx)
     {
-        ctx = apr_pcalloc(req->pool, sizeof (proxy_nextjs_ctx_t));
+        ctx = apr_pcalloc(r->pool, sizeof (proxy_nextjs_ctx_t));
         ctx->enabled = true;
         ctx->bytes_read = 0;
         filter->ctx = ctx;
+
+        if (strcasecmp(r->content_type, "text/html") != 0 &&
+            strcasecmp(r->content_type, "application/xhtml+xml") != 0 &&
+            strncasecmp(r->content_type, "text/html;", 10) != 0 &&
+            strncasecmp(r->content_type, "application/xhtml+xml;", 22) != 0)
+        {
+            ctx->enabled = false;
+        }
+    }
+
+    if (!ctx->enabled)
+    {
+        return ap_pass_brigade(filter->next, bb);
     }
     
+    printf("Content-Type: %s\n", r->content_type);
+
     for (apr_bucket *b = APR_BRIGADE_FIRST(bb); b != APR_BRIGADE_SENTINEL(bb); b = APR_BUCKET_NEXT(b))
     {
         if (APR_BUCKET_IS_EOS(b))
@@ -47,7 +63,7 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
 
         if (rv != APR_SUCCESS)
         {
-            ap_log_rerror(APLOG_MARK, APLOG_ERR, rv, req, "Failed to read bucket");
+            ap_log_rerror(APLOG_MARK, APLOG_ERR, rv, r, "Failed to read bucket");
             return rv;
         }
 
@@ -88,7 +104,7 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
 
             if (endptr == status_code + 3)
             {
-                req->status = val;
+                r->status = val;
             }
         }
     }
