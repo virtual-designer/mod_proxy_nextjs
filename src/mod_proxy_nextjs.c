@@ -1,19 +1,18 @@
 #include <stdbool.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "httpd.h"
-#include "http_config.h"
-#include "http_protocol.h"
-#include "http_request.h"
-#include "http_core.h"
-#include "http_log.h"
-#include "ap_config.h"
-#include "apr_buckets.h"
-#include "apr_strings.h"
+#include <httpd.h>
+#include <http_config.h>
+#include <http_protocol.h>
+#include <http_request.h>
+#include <http_core.h>
+#include <http_log.h>
+#include <ap_config.h>
+#include <apr_buckets.h>
+#include <apr_strings.h>
 
-#define MODULE_NAME     "mod_proxy_nextjs"
-#define OUT_FILTER_NAME "nextjs"
+#define AP_MODULE_NAME     "mod_proxy_nextjs"
+#define AP_OUT_FILTER_NAME "nextjs"
 
 typedef struct {
     apr_size_t bytes_read;
@@ -22,7 +21,7 @@ typedef struct {
 } proxy_nextjs_ctx_t;
 
 static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_brigade *bb)
-{ 
+{
     request_rec *r = filter->r;
     proxy_nextjs_ctx_t *ctx = filter->ctx;
 
@@ -43,12 +42,8 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
     }
 
     if (!ctx->enabled)
-    {
         return ap_pass_brigade(filter->next, bb);
-    }
     
-    printf("Content-Type: %s\n", r->content_type);
-
     for (apr_bucket *b = APR_BRIGADE_FIRST(bb); b != APR_BRIGADE_SENTINEL(bb); b = APR_BUCKET_NEXT(b))
     {
         if (APR_BUCKET_IS_EOS(b))
@@ -96,16 +91,14 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
         if (status_start + 2 < end)
         {
             char status_code[4] = {0};
-
-            memcpy(status_code, status_start, 3);
-            
             char *endptr = NULL;
-            apr_int64_t val = apr_strtoi64(status_code, &endptr, 10);
+            apr_int64_t val;
+            
+            memcpy(status_code, status_start, 3);
+            val = apr_strtoi64(status_code, &endptr, 10);
 
             if (endptr == status_code + 3)
-            {
                 r->status = val;
-            }
         }
     }
 
@@ -114,7 +107,7 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
 
 static void proxy_nextjs_register_hooks(apr_pool_t *p)
 {
-    ap_register_output_filter(OUT_FILTER_NAME, &proxy_nextjs_output_filter,
+    ap_register_output_filter(AP_OUT_FILTER_NAME, &proxy_nextjs_output_filter,
                               NULL, AP_FTYPE_CONTENT_SET);
 }
 
