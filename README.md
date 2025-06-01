@@ -3,6 +3,23 @@
 This is an Apache HTTP server module that aims to solve the issue of not being able to set a custom response status code from Server Components, in Next.js app router.
 This module can be combined with a `mod_proxy`, to proxy requests to the Next.js server and then filter the responses and set status codes accordingly.
 
+### Installation
+
+Clone this repository:
+
+```bash
+git clone https://github.com/virtual-designer/mod_proxy_nextjs
+```
+
+`cd` into it, compile and install it:
+
+```bash
+cd mod_proxy_nextjs
+./configure
+make
+sudo make install
+```
+
 ### Apache Configuration
 
 Simply enable the `nextjs` filter:
@@ -24,13 +41,23 @@ SetOutputFilter INFLATE;proxy-html;nextjs;DEFLATE
 SetOutputFilter INFLATE;proxy-html;nextjs;BROTLI_COMPRESS
 ```
 
-Then configure `mod_proxy`:
+Then configure `mod_proxy` (assuming you have it installed and enabled):
 
 ```conf
 ProxyRequests Off
 ProxyPreserveHost On
 ProxyPass / http://localhost:3000/         # Change as needed
 ProxyPassReverse / http://localhost:3000/  # Change as needed
+```
+
+Run the following command to restart Apache:
+
+```bash
+# Ubuntu/Debian
+sudo systemctl restart apache2
+
+# Fedora/RHEL
+sudo systemctl restart httpd
 ```
 
 ### Next.js

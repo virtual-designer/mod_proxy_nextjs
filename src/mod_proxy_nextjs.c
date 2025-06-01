@@ -43,7 +43,7 @@ static apr_status_t proxy_nextjs_output_filter(ap_filter_t *filter, apr_bucket_b
 
     if (!ctx->enabled)
         return ap_pass_brigade(filter->next, bb);
-    
+
     for (apr_bucket *b = APR_BRIGADE_FIRST(bb); b != APR_BRIGADE_SENTINEL(bb); b = APR_BUCKET_NEXT(b))
     {
         if (APR_BUCKET_IS_EOS(b))
